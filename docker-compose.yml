@@ -1,0 +1,27 @@
+version: '2.1'
+services:
+  app:
+    build: .
+    image: glen-app
+    container_name: glen-app-test
+    volumes:
+    - ./src:/src
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ['wait-for-it.sh', 'db:5432', '--', 'pytest']
+  db:
+    image: mdillon/postgis
+    container_name: glen-db
+    hostname: glen-hostname
+    ports:
+      - '5433:5432'
+    environment:
+      POSTGRES_PASSWORD: 123
+      POSTGRES_USER: postgres
+      POSTGRES_DB: glen-db
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 10s
+      timeout: 5s
+      retries: 5
